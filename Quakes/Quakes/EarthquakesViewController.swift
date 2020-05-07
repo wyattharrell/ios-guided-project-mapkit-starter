@@ -18,6 +18,10 @@ class EarthquakesViewController: UIViewController {
     
 	override func viewDidLoad() {
 		super.viewDidLoad()
+        
+        mapView.delegate = self
+        mapView.register(MKMarkerAnnotationView.self, forAnnotationViewWithReuseIdentifier: "QuakeView")
+        
         quakeFetcher.fetchQuakes { (quakes, error) in
             if let error = error {
                 print("Error fetching quakes: \(error)")
@@ -25,6 +29,20 @@ class EarthquakesViewController: UIViewController {
             
             guard let quakes = quakes else { return }
             print("Quakes: \(quakes.count)")
+            
+            DispatchQueue.main.async {
+                self.mapView.addAnnotations(quakes)
+                
+                guard let quake = quakes.first else { return }
+                
+                let span = MKCoordinateSpan(latitudeDelta: 2, longitudeDelta: 2)
+                let region = MKCoordinateRegion(center: quake.coordinate, span: span)
+                self.mapView.setRegion(region, animated: true)
+            }
         }
 	}
+}
+
+extension EarthquakesViewController: MKMapViewDelegate {
+    
 }
